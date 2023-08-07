@@ -164,8 +164,8 @@ def plot_history(history):
     plt.plot(history.history['val_loss'], label="Val Loss/Epoch")
     plt.legend()
 
-    path = os.path.abspath(os.path.join(os.getcwd(), os.pardir, 'plots'))
-    filename = "experiment-1.png"
+    path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
+    filename = "experiment-1.svg"
     plt.savefig(os.path.join(path,filename))
 
 # %%
