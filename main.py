@@ -1,5 +1,7 @@
 import sys
 import os
+import numpy as np
+from scipy import stats  
 import tensorflow as tf
 import pennylane as qml
 import pandas as pd
@@ -11,9 +13,9 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-def plot_history(history):
+def plot_history(history, n_layers):
     plt.figure(figsize=(14,5), dpi=320, facecolor='w', edgecolor='k')
-    plt.title("Loss")
+    plt.title(f"Loss for depth {n_layers}")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.plot(history.history['loss'], label="Loss/Epoch")
@@ -21,7 +23,7 @@ def plot_history(history):
     plt.legend()
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = "experiment-1.svg"
+    filename = f"experiment-{n_layers}.svg"
     plt.savefig(os.path.join(path,filename))
 
 
@@ -50,6 +52,7 @@ def main():
     print(f"There are {n_features} features and {n_instances} instâncias")
     print(X_all.head())
     print(y_all[:5])
+    print("\n#########\n")
 
     ####################
     ### Scaling Data ###
@@ -78,15 +81,16 @@ def main():
     print("Len(Val):"  ,len(X_val))
     print("Len(Test):" ,len(X_test))
 
+    print("\n#########\n")
 
     n_qubits = n_features
-    y_test_pred = []
-    for n_layers in range(1,2):
+    print(f"Serão necessários {n_qubits} qubits")
+    y_test_pred = np.array([])
+    for n_layers in range(1,3):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
-        print(f"Serão necessários {n_qubits} qubits")
-        n_layers = 1
+        print(f"Training with depth {n_layers}")
         weight_shapes = {"weights": (n_layers,n_qubits,3)}
 
         q_layer = qml.qnn.KerasLayer(qnode_entangling, weight_shapes, output_dim=n_qubits)
@@ -118,21 +122,60 @@ def main():
         #################
         ### Loss Plot ###
         #################
-        plot_history(history_model)
-        y_test_pred.appen(model.predict(X_test,verbose=1))
+        plot_history(history_model, n_layers)
+        y_test_pred.append(model.predict(X_test,verbose=1))
         #y_test_pred_normal = scaler_y.inverse_transform(y_test_pred)
+        print("\n#########\n")
 
     #####################
     ### Data Analysis ###
     #####################
     print("Len y_pred", len(y_test_pred))
     print(y_test_pred)
-    #erros_pd = quantitative_analysis(y_test, y_test_pred)
-    #print(erros_pd)
+    erros_pd = quantitative_analysis(y_test, y_test_pred[0])
+    print(erros_pd)
+    print("\n#########\n")
 
     #mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(
     #model, scaler_x, X_val, y_val, y_test, y_test_pred)
 
 
 if __name__ == "__main__":
-    main()
+    y_test = np.array(
+        [[18.768929]
+       , [14.344078]
+       , [10.681574]
+       , [17.663204]
+       , [17.011688]
+       , [14.130969]]) 
+    y_test_pred = [np.array(
+        [[22.581585 ]
+       , [13.519949 ]
+       , [7.6178145]
+       , [19.135805 ]
+       , [19.92104  ]
+       , [12.70121  ]])]
+    second_pred = np.array(
+        [[22.581585 ]
+       , [13.519949 ]
+       , [7.6178145]
+       , [19.135805 ]
+       , [19.92104  ]
+       , [12.70121  ]])+1
+
+    print(y_test[:,0])
+    print(len(y_test))
+
+    print("---")
+    print(y_test_pred)
+    print(second_pred)
+    #print(y_test_pred[0][:,0])
+    y_test_pred.append(second_pred)
+    print(y_test_pred)
+    print(y_test_pred[0])
+    print(y_test_pred[0][:,0])
+    
+    erros_pd = quantitative_analysis(y_test, y_test_pred)
+
+    print(erros_pd)
+    #main()
