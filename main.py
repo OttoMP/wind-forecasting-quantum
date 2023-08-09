@@ -1,7 +1,5 @@
 import sys
 import os
-import numpy as np
-from scipy import stats  
 import tensorflow as tf
 import pennylane as qml
 import pandas as pd
@@ -85,7 +83,7 @@ def main():
 
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
-    y_test_pred = np.array([])
+    y_test_pred = []
     for n_layers in range(1,3):
         ##########################################
         ### Creating Neural Network with Keras ###
@@ -132,7 +130,7 @@ def main():
     #####################
     print("Len y_pred", len(y_test_pred))
     print(y_test_pred)
-    erros_pd = quantitative_analysis(y_test, y_test_pred[0])
+    erros_pd = quantitative_analysis(y_test, y_test_pred)
     print(erros_pd)
     print("\n#########\n")
 
@@ -141,41 +139,4 @@ def main():
 
 
 if __name__ == "__main__":
-    y_test = np.array(
-        [[18.768929]
-       , [14.344078]
-       , [10.681574]
-       , [17.663204]
-       , [17.011688]
-       , [14.130969]]) 
-    y_test_pred = [np.array(
-        [[22.581585 ]
-       , [13.519949 ]
-       , [7.6178145]
-       , [19.135805 ]
-       , [19.92104  ]
-       , [12.70121  ]])]
-    second_pred = np.array(
-        [[22.581585 ]
-       , [13.519949 ]
-       , [7.6178145]
-       , [19.135805 ]
-       , [19.92104  ]
-       , [12.70121  ]])+1
-
-    print(y_test[:,0])
-    print(len(y_test))
-
-    print("---")
-    print(y_test_pred)
-    print(second_pred)
-    #print(y_test_pred[0][:,0])
-    y_test_pred.append(second_pred)
-    print(y_test_pred)
-    print(y_test_pred[0])
-    print(y_test_pred[0][:,0])
-    
-    erros_pd = quantitative_analysis(y_test, y_test_pred)
-
-    print(erros_pd)
-    #main()
+    main()
