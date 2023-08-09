@@ -34,7 +34,7 @@ def entangling_layer(nqubits):
 #dev = qml.device('lightning.gpu', wires=n_qubits)
 #dev = qml.device('lightning.qubit', wires=n_qubits)
 dev = qml.device('default.qubit', wires=5)
-@qml.qnode(dev, interface="torch")
+@qml.qnode(dev, interface="tensorflow")
 def qnode_strong_entangling(inputs, weights):
     # weights: (n_layers,n_qubits,3)
     # len(weights) == n_layers
@@ -49,7 +49,7 @@ def qnode_strong_entangling(inputs, weights):
 #dev = qml.device('lightning.gpu', wires=n_qubits)
 #dev = qml.device('lightning.qubit', wires=n_qubits)
 dev = qml.device('default.qubit', wires=5)
-@qml.qnode(dev, interface="torch")
+@qml.qnode(dev, interface="tensorflow")
 def qnode_entangling(inputs, weights):
     # weights: (n_layers,n_qubits,3)
     # len(weights) == n_layers
