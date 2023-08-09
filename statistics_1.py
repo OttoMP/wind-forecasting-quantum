@@ -79,8 +79,8 @@ def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, y_te
 
 def quantitative_analysis(y_test, y_test_pred):
     valores = []
-    for i in range(y_test.shape[1]):
-        mae,mse,nmse,r_value,rr,fat,rmse,nrmse = allmetrics(y_test[:,i],y_test_pred[:,i])
+    for i in range(len(y_test_pred)):
+        mae,mse,nmse,r_value,rr,fat,rmse,nrmse = allmetrics(y_test[:,0],y_test_pred[i][:,0])
         #valores.append([str(i+1)+" depth",mae,mse,nmse,rmse,nrmse,r_value,rr,fat,mean_error_normal[0,i],mean_error_left_normal[0,i],mean_predictions[0,i],mean_error_right_normal[0,i]])
         valores.append([str(i+1)+" depth",mae,mse,nmse,rmse,nrmse,r_value,rr,fat])
         print("MAE:",mae)
@@ -93,7 +93,7 @@ def quantitative_analysis(y_test, y_test_pred):
         print("Fator de 2:",fat)
 
     erros = pd.DataFrame(valores)
-    erros.columns = ['Index','MAE','MSE','NMSE','RMSE','NRMSE','R','R²','Fator de 2', 'error interval (+/-)', 'left limit', 'mean', 'right limit']
+    erros.columns = ['Index','MAE','MSE','NMSE','RMSE','NRMSE','R','R²','Fator de 2']#, 'error interval (+/-)', 'left limit', 'mean', 'right limit']
     erros = erros.set_index('Index')
     erros.loc['Média'] = erros.mean()
     return erros
