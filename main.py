@@ -19,11 +19,10 @@ def plot_history(history, n_layers):
     plt.ylabel("Loss")
     plt.plot(history.history['loss'], label="Loss/Epoch")
     plt.plot(history.history['val_loss'], label="Val Loss/Epoch")
+    plt.xticks(range(0, len(history.history['loss'])+1, 5))
     plt.legend()
-
-    path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = f"experiment-{n_layers}.svg"
-    plt.savefig(os.path.join(path,filename))
+    plt.grid()
+    plt.show()
 
 
 def carregar_tabela(path):
