@@ -1,12 +1,13 @@
 import sys
 import os
+import numpy as np
 import tensorflow as tf
 import pennylane as qml
 import pandas as pd
 from matplotlib import pyplot as plt
 
 from quantum_neural_network import qnode_entangling
-from statistics_1 import quantitative_analysis
+from statistics_1 import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -84,7 +85,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     y_test_pred = []
-    for n_layers in range(1,3):
+    for n_layers in range(1,2):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -134,9 +135,12 @@ def main():
     print(erros_pd)
     print("\n#########\n")
 
-    #mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(
-    #model, scaler_x, X_val, y_val, y_test, y_test_pred)
+    error_interval = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_pred)
+    print(error_interval)
+    print("\n#########\n")
 
+    all_analysis = erros_pd.join(error_interval)
+    print(all_analysis)
 
 if __name__ == "__main__":
     main()

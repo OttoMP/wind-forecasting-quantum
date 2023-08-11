@@ -41,47 +41,56 @@ def allmetrics(original,predito):
 def get_error_interval(model, X_val, y_val, y_test_pred, p_value):
     y_val_pred = model.predict(X_val)
     y_val_error = np.abs(y_val - y_val_pred)
-    
+
     error_quantile=np.ndarray((1,y_val.shape[1]))
     for i in range(y_val.shape[1]):
         error_quantile[0,i] = np.quantile(y_val_error[:,i], q=p_value, interpolation='higher')
-        
-    y_test_interval_pred_left=np.ndarray(y_test_pred.shape)
-    y_test_interval_pred_right=np.ndarray(y_test_pred.shape)
-    
+
+    y_test_interval_pred_left  = np.ndarray(y_test_pred.shape)
+    y_test_interval_pred_right = np.ndarray(y_test_pred.shape)
+
     for i in range(y_test_pred.shape[1]):
         y_test_interval_pred_left[:,i] = y_test_pred[:,i] - error_quantile[0,i]
         y_test_interval_pred_right[:,i] = y_test_pred[:,i] + error_quantile[0,i]
     
     return error_quantile, y_test_interval_pred_left, y_test_interval_pred_right
 
-def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, y_test_pred):
-    error, error_left, error_right = get_error_interval(model, X_val, y_val, y_test_pred, 0.95)
+def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, all_test_pred):
+    valores = []
+    for i in range(len(all_test_pred)):
+        y_test_pred = all_test_pred[i]
+        error, error_left, error_right = get_error_interval(model, X_val, y_val, y_test_pred, 0.95)
+        
+        #error_left_normal = scaler.inverse_transform(error_left)
+        #error_right_normal = scaler.inverse_transform(error_right)
+        error_left_normal  = error_left
+        error_right_normal = error_right
+
+        mean_error_normal      = np.ndarray((1,y_test.shape[1]))
+        mean_error_left_normal = np.ndarray((1,y_test.shape[1]))
+        mean_error_right_normal= np.ndarray((1,y_test.shape[1]))
+        mean_predictions       = np.ndarray((1,y_test_pred.shape[1]))
+
+        for ii in range(y_test.shape[1]):
+            mean_error_left_normal[0,ii]  = np.mean(error_left_normal[:,ii])
+            mean_error_right_normal[0,ii] = np.mean(error_right_normal[:,ii])
+            mean_predictions[0,ii]        = np.mean(y_test_pred[:,ii])
+
+        mean_error_normal = (mean_error_right_normal - mean_error_left_normal)/2
+        valores.append([str(i+1)+" depth", mean_error_normal[0],mean_error_left_normal[0],mean_predictions[0],mean_error_right_normal[0]])
+
+    print("valores", valores)
+    error_interval = pd.DataFrame(valores)
+    error_interval.columns = ['Index', 'error interval (+/-)', 'left limit', 'mean', 'right limit']
+    error_interval = error_interval.set_index('Index')
+    error_interval.loc['Média'] = error_interval.mean()
     
-    #error_left_normal = scaler.inverse_transform(error_left)
-    #error_right_normal = scaler.inverse_transform(error_right)
-    error_left_normal  = error_left
-    error_right_normal = error_right
-
-    mean_error_normal      = np.ndarray((1,y_test.shape[1]))
-    mean_error_left_normal = np.ndarray((1,y_test.shape[1]))
-    mean_error_right_normal= np.ndarray((1,y_test.shape[1]))
-    mean_predictions       = np.ndarray((1,y_test_pred.shape[1]))
-
-    for i in range(y_test.shape[1]):
-        mean_error_left_normal[0,i]  = np.mean(error_left_normal[:,i])
-        mean_error_right_normal[0,i] = np.mean(error_right_normal[:,i])
-        mean_predictions[0,i]        = np.mean(y_test_pred[:,i])
-
-    mean_error_normal = (mean_error_right_normal - mean_error_left_normal)/2
-    
-    return mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal
+    return error_interval
 
 def quantitative_analysis(y_test, y_test_pred):
     valores = []
     for i in range(len(y_test_pred)):
         mae,mse,nmse,r_value,rr,fat,rmse,nrmse = allmetrics(y_test[:,0],y_test_pred[i][:,0])
-        #valores.append([str(i+1)+" depth",mae,mse,nmse,rmse,nrmse,r_value,rr,fat,mean_error_normal[0,i],mean_error_left_normal[0,i],mean_predictions[0,i],mean_error_right_normal[0,i]])
         valores.append([str(i+1)+" depth",mae,mse,nmse,rmse,nrmse,r_value,rr,fat])
         print("MAE:",mae)
         print("MSE:",mse)
