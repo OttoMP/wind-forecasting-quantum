@@ -22,7 +22,10 @@ def plot_history(history, n_layers):
     plt.xticks(range(0, len(history.history['loss'])+1, 5))
     plt.legend()
     plt.grid()
-    plt.show()
+
+    path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
+    filename = f"experiment-{n_layers}.svg"
+    plt.savefig(os.path.join(path,filename))
 
 
 def carregar_tabela(path):
