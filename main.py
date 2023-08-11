@@ -87,7 +87,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     y_test_pred = []
-    for n_layers in range(1,3):
+    for n_layers in range(1,7):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -116,8 +116,8 @@ def main():
         re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
                                 , epochs=30, batch_size=64
-                                , callbacks=[re]
-                                , verbose=1
+                                , callbacks=[es, re]
+                                , verbose=0
                                 , validation_data=(X_val, y_val))
 
         #################
