@@ -87,7 +87,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     y_test_pred = []
-    for n_layers in range(1,7):
+    for n_layers in range(1,9):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -124,7 +124,7 @@ def main():
         ### Loss Plot ###
         #################
         plot_history(history_model, n_layers)
-        y_test_pred.append(model.predict(X_test,verbose=1))
+        y_test_pred.append(model.predict(X_test,verbose=0))
         #y_test_pred_normal = scaler_y.inverse_transform(y_test_pred)
         print("\n#########\n")
 
