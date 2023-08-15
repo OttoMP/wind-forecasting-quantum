@@ -87,7 +87,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     y_test_pred = []
-    for n_layers in range(1,9):
+    for n_layers in range(1,2):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -112,8 +112,8 @@ def main():
         ### Training Model ###
         ######################
         
-        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=1, mode='auto', baseline=None, restore_best_weights=True)
-        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1, mode='min', min_lr=0.00001)
+        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=0, mode='auto', baseline=None, restore_best_weights=True)
+        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
                                 , epochs=30, batch_size=64
                                 , callbacks=[es, re]
@@ -143,6 +143,10 @@ def main():
 
     all_analysis = erros_pd.join(error_interval)
     print(all_analysis)
+    
+    path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
+    filename = "metrics"+"-"+filename.split("/")[1]
+    all_analysis.to_csv(os.path.join(path,filename))
 
 if __name__ == "__main__":
     main()
