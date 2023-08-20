@@ -99,7 +99,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     list_y_pred = []
-    for n_layers in range(1,4):
+    for n_layers in range(1,9):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -124,12 +124,12 @@ def main():
         ### Training Model ###
         ######################
         
-        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=1, mode='auto', baseline=None, restore_best_weights=True)
-        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1, mode='min', min_lr=0.00001)
+        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=0, mode='auto', baseline=None, restore_best_weights=True)
+        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
                                 , epochs=50, batch_size=32
                                 , callbacks=[re]
-                                , verbose=1
+                                , verbose=0
                                 , validation_data=(X_val, y_val))
 
         #################
@@ -140,7 +140,7 @@ def main():
         ##################
         ### Prediction ###
         ##################
-        y_pred = model.predict(X_test_scaled,verbose=1)
+        y_pred = model.predict(X_test_scaled,verbose=0)
         y_pred_normal = scaler_y.inverse_transform(y_pred)
         list_y_pred.append(y_pred_normal)
         mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_y, X_val, y_val, y_test, y_pred_normal)
