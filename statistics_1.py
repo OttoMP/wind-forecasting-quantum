@@ -55,37 +55,25 @@ def get_error_interval(model, X_val, y_val, y_test_pred, p_value):
     
     return error_quantile, y_test_interval_pred_left, y_test_interval_pred_right
 
-def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, all_test_pred):
-    valores = []
-    for i in range(len(all_test_pred)):
-        y_test_pred = all_test_pred[i]
-        error, error_left, error_right = get_error_interval(model, X_val, y_val, y_test_pred, 0.95)
-        
-        #error_left_normal = scaler.inverse_transform(error_left)
-        #error_right_normal = scaler.inverse_transform(error_right)
-        error_left_normal  = error_left
-        error_right_normal = error_right
-
-        mean_error_normal      = np.ndarray((1,y_test.shape[1]))
-        mean_error_left_normal = np.ndarray((1,y_test.shape[1]))
-        mean_error_right_normal= np.ndarray((1,y_test.shape[1]))
-        mean_predictions       = np.ndarray((1,y_test_pred.shape[1]))
-
-        for ii in range(y_test.shape[1]):
-            mean_error_left_normal[0,ii]  = np.mean(error_left_normal[:,ii])
-            mean_error_right_normal[0,ii] = np.mean(error_right_normal[:,ii])
-            mean_predictions[0,ii]        = np.mean(y_test_pred[:,ii])
-
-        mean_error_normal = (mean_error_right_normal - mean_error_left_normal)/2
-        valores.append([str(i+1)+" depth", mean_error_normal[0],mean_error_left_normal[0],mean_predictions[0],mean_error_right_normal[0]])
-
-    print("valores", valores)
-    error_interval = pd.DataFrame(valores)
-    error_interval.columns = ['Index', 'error interval (+/-)', 'left limit', 'mean', 'right limit']
-    error_interval = error_interval.set_index('Index')
-    error_interval.loc['Média'] = error_interval.mean()
+def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, y_pred):
+    error, error_left, error_right = get_error_interval(model, X_val, y_val, y_pred, 0.95)
     
-    return error_interval
+    error_left_normal = scaler.inverse_transform(error_left)
+    error_right_normal = scaler.inverse_transform(error_right)
+
+    mean_error_normal      = np.ndarray((1,y_test.shape[1]))
+    mean_error_left_normal = np.ndarray((1,y_test.shape[1]))
+    mean_error_right_normal= np.ndarray((1,y_test.shape[1]))
+    mean_predictions       = np.ndarray((1,y_pred.shape[1]))
+
+    for ii in range(y_test.shape[1]):
+        mean_error_left_normal[0,ii]  = np.mean(error_left_normal[:,ii])
+        mean_error_right_normal[0,ii] = np.mean(error_right_normal[:,ii])
+        mean_predictions[0,ii]        = np.mean(y_pred[:,ii])
+
+    mean_error_normal = (mean_error_right_normal - mean_error_left_normal)/2
+
+    return mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal
 
 def quantitative_analysis(y_test, y_test_pred):
     valores = []

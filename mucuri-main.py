@@ -10,7 +10,7 @@ from quantum_neural_network import qnode_entangling
 from statistics_1 import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 def plot_history(history, n_layers):
     plt.figure(figsize=(14,5), dpi=320, facecolor='w', edgecolor='k')
@@ -24,15 +24,29 @@ def plot_history(history, n_layers):
     plt.grid()
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = f"experiment-{n_layers}.svg"
+    filename = f"loss-history-{n_layers}.svg"
     plt.savefig(os.path.join(path,filename))
 
+def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal):
+    for i in range(y_test.shape[1]):
+        plt.figure(figsize=(20,5), dpi=320, facecolor='w', edgecolor='k')
+        plt.title("Previsão do vento para "+str(i+1)+" hora(s) à frente com "+str(n_layers)+"camadas")
+        plt.xlabel("Amostras")
+        plt.ylabel("Velocidade do Vento (m/s)")
+        plt.plot(y_pred[:,i], label="Predito", color='blue')
+        plt.fill_between(range(y_pred.shape[0]), y_pred[:,i]-mean_error_normal[0,i], y_pred[:,i]+mean_error_normal[0,i], color='blue', alpha=0.05)
+        plt.plot(y_test[:,i], label="Original", color='orange')
+        plt.legend()
+        path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
+        filename = f"predction-{n_layers}.svg"
+        plt.savefig(os.path.join(path,filename))
 
 def carregar_tabela(path):
-    dataframe=pd.read_csv(path)
-    dataset = dataframe.values
-    X_train_all=dataframe[['Total amount of precipitation','Vapor_Pressure','Relative_Humudity','Amount of cloudiness','Actual_Pressure']]
-    y_train_all=dataframe[['Temperature']]
+    X_train_all=pd.read_csv(path, sep='\t', header = 0)
+    y_train_all = X_train_all[:].drop(X_train_all.index[0])
+    X_train_all = X_train_all.iloc[:-3,:]
+    y_train_all['1h - Vento'] = y_train_all.iloc[:,4].shift(0)
+    y_train_all= y_train_all.iloc[:-2, -1:]
 
     return X_train_all, y_train_all.values
 
@@ -43,10 +57,9 @@ def main():
     ### Importando dados ###
     ########################
 
-    filename = sys.argv[1]
+    filename = 'data/train150_mucuri.txt'
 
     X_all,y_all = carregar_tabela(filename)
-    #y_train_all = y_train_all.reshape(-1,1)
 
     n_features = X_all.shape[1]
     n_instances = X_all.shape[0]
@@ -59,35 +72,34 @@ def main():
     ### Scaling Data ###
     ####################
     
-    scaler_x = StandardScaler()
+    scaler_x = MinMaxScaler(feature_range=(-1, 1))
     X_all_scaled = scaler_x.fit_transform(X_all)
-    #scaler_y = StandardScaler()
-    #y_all_scaled = scaler_y.fit_transform(y_all)
+    scaler_y = MinMaxScaler(feature_range=(-1, 1))
+    y_all_scaled = scaler_y.fit_transform(y_all)
 
     #####################################
     ### Splitting Train and Test sets ###
     #####################################
-    train_ratio = 0.75
-    validation_ratio = 0.15
-    test_ratio = 0.10
-    # train is now 75% of the entire data set
-    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all, test_size=1 - train_ratio)
-    # test is now 10% of the initial data set
-    # validation is now 15% of the initial data set
-    X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=test_ratio/(test_ratio + validation_ratio)) 
+    train_ratio = 0.8
+    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all_scaled, test_size=1 - train_ratio)
+
+    test = 'data/prev150_mucuri.txt'
+    X_test,y_test = carregar_tabela(test)
+    X_test_scaled = scaler_x.transform(X_test)
+    y_test_scaled = scaler_y.transform(y_test)
     
     #X_train = tf.cast(X_train, dtype=tf.float64)
     #y_train = tf.cast(y_train, dtype=tf.float64)
     print("Len(Train):",len(X_train))
     print("Len(Val):"  ,len(X_val))
-    print("Len(Test):" ,len(X_test))
+    print("Len(Test):" ,len(X_test_scaled))
 
     print("\n#########\n")
 
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
-    y_test_pred = []
-    for n_layers in range(1,9):
+    list_y_pred = []
+    for n_layers in range(1,4):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -112,37 +124,45 @@ def main():
         ### Training Model ###
         ######################
         
-        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=0, mode='auto', baseline=None, restore_best_weights=True)
-        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='min', min_lr=0.00001)
+        es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=1, mode='auto', baseline=None, restore_best_weights=True)
+        re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
-                                , epochs=30, batch_size=64
-                                , callbacks=[es, re]
-                                , verbose=0
+                                , epochs=50, batch_size=32
+                                , callbacks=[re]
+                                , verbose=1
                                 , validation_data=(X_val, y_val))
 
         #################
         ### Loss Plot ###
         #################
         plot_history(history_model, n_layers)
-        y_test_pred.append(model.predict(X_test,verbose=0))
-        #y_test_pred_normal = scaler_y.inverse_transform(y_test_pred)
+
+        ##################
+        ### Prediction ###
+        ##################
+        y_pred = model.predict(X_test_scaled,verbose=1)
+        y_pred_normal = scaler_y.inverse_transform(y_pred)
+        list_y_pred.append(y_pred_normal)
+        mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_y, X_val, y_val, y_test, y_pred_normal)
+        plot_prediction_versus_observed(n_layers, y_test, y_pred_normal, mean_error_normal)
         print("\n#########\n")
+
 
     #####################
     ### Data Analysis ###
     #####################
-    print("Len y_pred", len(y_test_pred))
-    print(y_test_pred)
-    erros_pd = quantitative_analysis(y_test, y_test_pred)
-    print(erros_pd)
-    print("\n#########\n")
-
-    error_interval = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_test_pred)
-    print(error_interval)
-    print("\n#########\n")
-
-    all_analysis = erros_pd.join(error_interval)
+    print("Len list_y_pred", len(list_y_pred))
+    #print(list_y_pred)
+    all_analysis = quantitative_analysis(y_test_scaled, list_y_pred)
     print(all_analysis)
+    print("\n#########\n")
+
+    #error_interval = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_test_pred)
+    #print(error_interval)
+    #print("\n#########\n")
+
+    #all_analysis = erros_pd.join(error_interval)
+    #print(all_analysis)
     
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
     filename = "metrics"+"-"+filename.split("/")[1]
