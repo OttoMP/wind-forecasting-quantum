@@ -30,7 +30,7 @@ def plot_history(history, n_layers):
 def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal):
     for i in range(y_test.shape[1]):
         plt.figure(figsize=(20,5), dpi=320, facecolor='w', edgecolor='k')
-        plt.title("Previsão do vento para "+str(i+1)+" hora(s) à frente com "+str(n_layers)+"camadas")
+        plt.title("Previsão do vento para "+str(i+1)+" hora(s) à frente com "+str(n_layers)+" camadas")
         plt.xlabel("Amostras")
         plt.ylabel("Velocidade do Vento (m/s)")
         plt.plot(y_pred[:,i], label="Predito", color='blue')
