@@ -6,7 +6,7 @@ import pennylane as qml
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from quantum_neural_network import qnode_entangling
+from quantum_neural_network import qnode_entangling, qnode_strong_entangling
 from statistics_1 import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
@@ -38,7 +38,7 @@ def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal)
         plt.plot(y_test[:,i], label="Original", color='orange')
         plt.legend()
         path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-        filename = f"predction-{n_layers}.svg"
+        filename = f"prediction-{n_layers}.svg"
         plt.savefig(os.path.join(path,filename))
 
 def carregar_tabela(path):
@@ -153,7 +153,7 @@ def main():
     #####################
     print("Len list_y_pred", len(list_y_pred))
     #print(list_y_pred)
-    all_analysis = quantitative_analysis(y_test_scaled, list_y_pred)
+    all_analysis = quantitative_analysis(y_test, list_y_pred)
     print(all_analysis)
     print("\n#########\n")
 
