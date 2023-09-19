@@ -166,13 +166,6 @@ def main():
     all_analysis = quantitative_analysis(y_test, list_y_pred)
     print(all_analysis)
     print("\n#########\n")
-
-    #error_interval = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_test_pred)
-    #print(error_interval)
-    #print("\n#########\n")
-
-    #all_analysis = erros_pd.join(error_interval)
-    #print(all_analysis)
     
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
     filename = "metrics"+"-"+filename.split("/")[1]
