@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from quantum_neural_network import qnode_entangling, qnode_strong_entangling
-from statistics_1 import quantitative_analysis, get_mean_left_right_error_interval
+from stat_functions import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -28,11 +28,11 @@ def plot_history(history, n_layers):
     loss_pd.columns = ["Época", "Loss", "Val Loss"]
     loss_pd = loss_pd.set_index("Época")
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
-    filename = f"loss-df-{(n_layers)}.csv"
+    filename = f"loss-df-mucuri-{(n_layers)}.csv"
     loss_pd.to_csv(os.path.join(path,filename))
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = f"loss-history-{n_layers}.svg"
+    filename = f"loss-history-mucuri-{n_layers}.png"
     plt.savefig(os.path.join(path,filename))
 
 
@@ -47,16 +47,16 @@ def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal)
         plt.plot(y_test[:,i], label="Original", color='orange')
         plt.legend()
         path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-        filename = f"prediction-{n_layers}.svg"
+        filename = f"prediction-mucuri-{n_layers}.png"
         plt.savefig(os.path.join(path,filename))
 
 
 def carregar_tabela(path):
     X_train_all=pd.read_csv(path, sep='\t', header = 0)
     y_train_all = X_train_all[:].drop(X_train_all.index[0])
-    X_train_all = X_train_all.iloc[:-3,:]
+    X_train_all = X_train_all.iloc[:-1,:]
     y_train_all['1h - Vento'] = y_train_all.iloc[:,4].shift(0)
-    y_train_all= y_train_all.iloc[:-2, -1:]
+    y_train_all= y_train_all.iloc[:, -1:]
 
     return X_train_all, y_train_all.values
 
@@ -75,7 +75,7 @@ def main():
     n_instances = X_all.shape[0]
     print(f"There are {n_features} features and {n_instances} instâncias")
     print(X_all.head())
-    print(y_all[:5])
+    print("Len", len(y_all),"\n", y_all[:5])
     print("\n#########\n")
 
     ####################
@@ -109,7 +109,7 @@ def main():
     n_qubits = n_features
     print(f"Serão necessários {n_qubits} qubits")
     list_y_pred = []
-    for n_layers in range(1,9):
+    for n_layers in range(1,3):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################

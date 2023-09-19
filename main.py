@@ -10,7 +10,7 @@ from quantum_neural_network import qnode_entangling
 from stat_functions import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, MinMaxScaler
 
 def plot_history(history, n_layers):
     plt.figure(figsize=(14,5), dpi=320, facecolor='w', edgecolor='k')
@@ -28,11 +28,11 @@ def plot_history(history, n_layers):
     loss_pd.columns = ["Época", "Loss", "Val Loss"]
     loss_pd = loss_pd.set_index("Época")
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
-    filename = f"loss-df-{(n_layers)}.csv"
+    filename = f"loss-df-main{(n_layers)}.csv"
     loss_pd.to_csv(os.path.join(path,filename))
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = f"loss-history-{n_layers}.svg"
+    filename = f"loss-history-main-{n_layers}.png"
     plt.savefig(os.path.join(path,filename))
 
 
@@ -47,7 +47,7 @@ def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal)
         plt.plot(y_test[:,i], label="Original", color='orange')
         plt.legend()
         path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-        filename = f"prediction-{n_layers}.svg"
+        filename = f"prediction-main-{n_layers}-Camadas-{i+1}-Horas.png"
         plt.savefig(os.path.join(path,filename))
 
 
@@ -78,11 +78,14 @@ def main():
     ########################
 
     filename = sys.argv[1]
-    X_all,y_all = carregar_tabela(filename, 1)
+    prev = 3
+    X_all,y_all = carregar_tabela(filename, prev)
 
     n_features = X_all.shape[1]
     n_instances = X_all.shape[0]
     print(f"There are {n_features} features and {n_instances} instâncias")
+    print(X_all.head())
+    print("Len", len(y_all),"\n", y_all[:5])
     print("\n#########\n")
 
     ####################
@@ -97,23 +100,22 @@ def main():
     #####################################
     ### Splitting Train and Test sets ###
     #####################################
-    train_ratio = 0.75
-    validation_ratio = 0.15
-    test_ratio = 0.10
-    # train is now 75% of the entire data set
-    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all, test_size=1 - train_ratio)
-    # test is now 10% of the initial data set
-    # validation is now 15% of the initial data set
-    X_val, X_test, y_val, y_test = train_test_split(X_val, y_val, test_size=test_ratio/(test_ratio + validation_ratio)) 
+    train_ratio = 0.8
+    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all_scaled, test_size=1 - train_ratio)
+
+    test = sys.argv[2]
+    X_test,y_test = carregar_tabela(test,prev)
+    X_test_scaled = scaler_x.transform(X_test)
+    y_test_scaled = scaler_y.transform(y_test)
 
     #X_train = tf.cast(X_train, dtype=tf.float64)
     #y_train = tf.cast(y_train, dtype=tf.float64)
     print("Len(Train):",len(X_train))
     print("Len(Val):"  ,len(X_val))
-    print("Len(Test):" ,len(X_test))
+    print("Len(Test):" ,len(X_test_scaled))
 
     print("\n#########\n")
-
+    
     n_qubits = n_features
     print(f"Circuit size: {n_qubits} qubits")
     list_y_pred = []
@@ -126,7 +128,7 @@ def main():
 
         q_layer = qml.qnn.KerasLayer(qnode_entangling, weight_shapes, output_dim=n_qubits)
         Activation=tf.keras.layers.Activation(tf.keras.activations.linear)
-        output_layer = tf.keras.layers.Dense(1,kernel_initializer='normal')
+        output_layer = tf.keras.layers.Dense(prev,kernel_initializer='normal')
 
         opt = tf.keras.optimizers.Adam(learning_rate=0.1)
 
@@ -145,8 +147,8 @@ def main():
         es=EarlyStopping(monitor='val_loss', min_delta=0, patience=6, verbose=0, mode='auto', baseline=None, restore_best_weights=True)
         re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
-                                , epochs=30, batch_size=64
-                                , callbacks=[es, re]
+                                , epochs=50, batch_size=32
+                                , callbacks=[re]
                                 , verbose=0
                                 , validation_data=(X_val, y_val))
 
@@ -158,7 +160,7 @@ def main():
         ##################
         ### Prediction ###
         ##################
-        y_pred = model.predict(X_test,verbose=0)
+        y_pred = model.predict(X_test_scaled,verbose=0)
         y_pred_normal = scaler_y.inverse_transform(y_pred)
         list_y_pred.append(y_pred_normal)
         mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_y, X_val, y_val, y_test, y_pred_normal)
@@ -175,7 +177,7 @@ def main():
     print("\n#########\n")
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
-    filename = "metrics"+"-"+filename.split("/")[1]
+    filename = "metrics"+"-main-"+filename.split("/")[1]
     all_analysis.to_csv(os.path.join(path,filename))
 
 if __name__ == "__main__":
