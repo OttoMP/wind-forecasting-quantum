@@ -23,9 +23,18 @@ def plot_history(history, n_layers):
     plt.legend()
     plt.grid()
 
+    values = np.array([list(range(1, len(history.history['loss'])+1)), history.history['loss'], history.history['val_loss']])
+    loss_pd = pd.DataFrame(np.transpose(values))
+    loss_pd.columns = ["Época", "Loss", "Val Loss"]
+    loss_pd = loss_pd.set_index("Época")
+    path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
+    filename = f"loss-df-{(n_layers)}.csv"
+    loss_pd.to_csv(os.path.join(path,filename))
+
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
     filename = f"loss-history-{n_layers}.svg"
     plt.savefig(os.path.join(path,filename))
+
 
 def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal):
     for i in range(y_test.shape[1]):
@@ -40,6 +49,7 @@ def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal)
         path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
         filename = f"prediction-{n_layers}.svg"
         plt.savefig(os.path.join(path,filename))
+
 
 def carregar_tabela(path):
     X_train_all=pd.read_csv(path, sep='\t', header = 0)
