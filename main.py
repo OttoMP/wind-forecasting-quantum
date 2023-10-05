@@ -6,7 +6,7 @@ import pennylane as qml
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from quantum_neural_network import qnode_entangling
+from quantum_neural_network import qnode_entangling, qnode_strong_entangling
 from stat_functions import quantitative_analysis, get_mean_left_right_error_interval
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
@@ -28,11 +28,11 @@ def plot_history(history, n_layers):
     loss_pd.columns = ["Época", "Loss", "Val Loss"]
     loss_pd = loss_pd.set_index("Época")
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
-    filename = f"loss-df-main{(n_layers)}.csv"
+    filename = f"loss-df-strong-{(n_layers)}.csv"
     loss_pd.to_csv(os.path.join(path,filename))
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-    filename = f"loss-history-main-{n_layers}.png"
+    filename = f"loss-history-strong-{n_layers}.png"
     plt.savefig(os.path.join(path,filename))
 
 
@@ -47,7 +47,7 @@ def plot_prediction_versus_observed(n_layers, y_test, y_pred, mean_error_normal)
         plt.plot(y_test[:,i], label="Original", color='orange')
         plt.legend()
         path = os.path.abspath(os.path.join(os.getcwd(), 'plots'))
-        filename = f"prediction-main-{n_layers}-Camadas-{i+1}-Horas.png"
+        filename = f"prediction-strong-{n_layers}-Camadas-{i+1}-Horas.png"
         plt.savefig(os.path.join(path,filename))
 
 
@@ -78,7 +78,7 @@ def main():
     ########################
 
     filename = sys.argv[1]
-    prev = 3
+    prev = 1
     X_all,y_all = carregar_tabela(filename, prev)
 
     n_features = X_all.shape[1]
@@ -119,14 +119,14 @@ def main():
     n_qubits = n_features
     print(f"Circuit size: {n_qubits} qubits")
     list_y_pred = []
-    for n_layers in range(1,3):
+    for n_layers in range(1,9):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
         print(f"Training with depth {n_layers}")
         weight_shapes = {"weights": (n_layers,n_qubits,3)}
 
-        q_layer = qml.qnn.KerasLayer(qnode_entangling, weight_shapes, output_dim=n_qubits)
+        q_layer = qml.qnn.KerasLayer(qnode_strong_entangling, weight_shapes, output_dim=n_qubits)
         Activation=tf.keras.layers.Activation(tf.keras.activations.linear)
         output_layer = tf.keras.layers.Dense(prev,kernel_initializer='normal')
 
@@ -177,7 +177,7 @@ def main():
     print("\n#########\n")
 
     path = os.path.abspath(os.path.join(os.getcwd(), 'analysis'))
-    filename = "metrics"+"-main-"+filename.split("/")[1]
+    filename = "metrics"+"-strong-"+filename.split("/")[1]
     all_analysis.to_csv(os.path.join(path,filename))
 
 if __name__ == "__main__":
