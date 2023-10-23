@@ -1,4 +1,6 @@
 numpy==1.23.5
+scipy==1.10.1
+pandas==1.5.3
 tensorflow==2.7.0
 tensorflow-quantum==0.7.2
 PennyLane==0.31.0
