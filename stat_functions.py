@@ -2,9 +2,18 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 
-from scipy import stats  
+from scipy import stats
 from sklearn.metrics import mean_squared_error, mean_absolute_error,r2_score
 from tensorflow.keras import backend
+
+def verify_distribution_wilcoxtest(data1, data2, p_H0):
+    stat, p = stats.wilcoxon(data1, data2)
+    print('Statistics=%.3f, p=%.3f' % (stat, p))
+    if p > p_H0:
+        print('Same distribution (fail to reject H0)')
+    else:
+        print('Different distribution (reject H0)')
+    return stat, p
 
 def factor_of_2(y_true, y_pred):
     min_ = 0.5
@@ -57,9 +66,11 @@ def get_error_interval(model, X_val, y_val, y_test_pred, p_value):
 
 def get_mean_left_right_error_interval(model, scaler, X_val, y_val, y_test, y_pred):
     error, error_left, error_right = get_error_interval(model, X_val, y_val, y_pred, 0.95)
-    
-    error_left_normal = scaler.inverse_transform(error_left)
-    error_right_normal = scaler.inverse_transform(error_right)
+
+    error_left_normal = error_left 
+    error_right_normal = error_right 
+    #error_left_normal = scaler.inverse_transform(error_left)
+    #error_right_normal = scaler.inverse_transform(error_right)
 
     mean_error_normal      = np.ndarray((1,y_test.shape[1]))
     mean_error_left_normal = np.ndarray((1,y_test.shape[1]))
