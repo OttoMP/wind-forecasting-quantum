@@ -54,6 +54,7 @@ def plot_prediction_versus_observed(n_layers, city, height, y_test, y_pred, mean
 def carregar_tabela(path, prev):
     X_train_all=pd.read_csv(path, sep='\t', header = None)
     #X_train_all=pd.read_csv(path, header = 0)
+    X_train_all.dropna(axis=0,how='any',inplace=True)
     
     # Utilizado apenas a coluna de velocidade e removido o primeiro índice para prever a próxima velocidade
     y_train_all = X_train_all[:].drop(X_train_all.index[0])
@@ -105,16 +106,15 @@ def main():
     ####################
     
     scaler_x = MinMaxScaler(feature_range=(-1, 1))
-    X_all_scaled  = scaler_x.fit_transform(X_all)
+    scaler_x.fit(X_all)
+    X_all_scaled = scaler_x.transform(X_all)
     X_test_scaled = scaler_x.transform(X_test)
-    scaler_y = MinMaxScaler(feature_range=(-1, 1))
-    y_all_scaled = scaler_y.fit_transform(y_all)
-   
+
     #####################################
     ### Splitting Train and Test sets ###
     #####################################
     train_ratio = 0.8
-    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all_scaled, test_size=1 - train_ratio)
+    X_train, X_val, y_train, y_val = train_test_split(X_all_scaled, y_all, test_size=1 - train_ratio)
 
     #X_train = tf.cast(X_train, dtype=tf.float64)
     #y_train = tf.cast(y_train, dtype=tf.float64)
@@ -127,7 +127,7 @@ def main():
     n_qubits = n_features
     print(f"Circuit size: {n_qubits} qubits")
     list_y_pred = []
-    for n_layers in range(1,3):
+    for n_layers in range(1,9):
         ##########################################
         ### Creating Neural Network with Keras ###
         ##########################################
@@ -138,7 +138,7 @@ def main():
         Activation=tf.keras.layers.Activation(tf.keras.activations.linear)
         output_layer = tf.keras.layers.Dense(prev,kernel_initializer='normal')
 
-        opt = tf.keras.optimizers.Adam(learning_rate=0.1)
+        opt = tf.optimizers.Adamax(learning_rate=0.1)
 
         model = tf.keras.models.Sequential([q_layer,Activation, output_layer])
         model.compile(opt, loss="mse")
@@ -156,7 +156,6 @@ def main():
         re=ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=0, mode='min', min_lr=0.00001)
         history_model = model.fit(X_train, y_train
                                 , epochs=50, batch_size=32
-                                , callbacks=[re]
                                 , verbose=0
                                 , validation_data=(X_val, y_val))
 
@@ -169,10 +168,9 @@ def main():
         ### Prediction ###
         ##################
         y_pred = model.predict(X_test_scaled,verbose=0)
-        y_pred_normal = scaler_y.inverse_transform(y_pred)
-        list_y_pred.append(y_pred_normal)
-        mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_y, X_val, y_val, y_test, y_pred_normal)
-        plot_prediction_versus_observed(n_layers, city, height, y_test, y_pred_normal, mean_error_normal)
+        list_y_pred.append(y_pred)
+        mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_pred)
+        plot_prediction_versus_observed(n_layers, city, height, y_test, y_pred, mean_error_normal)
         print("\n#########\n")
 
     #####################
