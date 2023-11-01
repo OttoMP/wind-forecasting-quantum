@@ -103,5 +103,5 @@ def quantitative_analysis(y_test, y_test_pred):
     erros = pd.DataFrame(valores)
     erros.columns = ['Index','MAE','MSE','NMSE','RMSE','NRMSE','R','R²','Fator de 2']#, 'error interval (+/-)', 'left limit', 'mean', 'right limit']
     erros = erros.set_index('Index')
-    erros.loc['Média'] = erros.mean()
+    #erros.loc['Média'] = erros.mean()
     return erros
