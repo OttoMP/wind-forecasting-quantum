@@ -5,24 +5,25 @@ def H_layer(n_qubits):
     for idx in range(n_qubits):
         qml.Hadamard(wires=idx)
 
+
 def Data_AngleEmbedding_layer(inputs, n_qubits):
     qml.templates.AngleEmbedding(inputs,rotation='Y', wires=range(n_qubits))
 
+
 def RY_layer(w):
-    print(w.shape)
     for idx, element in enumerate(w):
         qml.RY(element, wires=idx)
 
+
 def ROT_layer(w):
-    for i in range(5):
+    for i in range(len(w)):
         qml.Rot(*w[i],wires=i)
 
+
 def strong_entangling_layer(nqubits):
-    qml.CNOT(wires=[0,1])
-    qml.CNOT(wires=[1,2])
-    qml.CNOT(wires=[2,3])
-    qml.CNOT(wires=[3,4])
-    qml.CNOT(wires=[4,0])
+    for i in range(nqubits-1):
+        qml.CNOT(wires=[i,i+1])
+    qml.CNOT(wires=[nqubits-1,0])
     
     
 def entangling_layer(nqubits):
@@ -49,7 +50,7 @@ def qnode_strong_entangling(inputs, weights):
 #dev = qml.device('lightning.gpu', wires=n_qubits)
 #dev = qml.device('lightning.qubit', wires=n_qubits)
 dev = qml.device('default.qubit', wires=9)
-@qml.qnode(dev, interface="tensorflow")
+@qml.qnode(dev)
 def qnode_entangling(inputs, weights):
     # weights: (n_layers,n_qubits,3)
     # len(weights) == n_layers
@@ -62,7 +63,7 @@ def qnode_entangling(inputs, weights):
     return [qml.expval(qml.PauliZ(wires=i)) for i in range(len(weights[0]))]
 
 def draw_circuit():
-    n_qubits = 5
+    n_qubits = 9
     print(f"Serão necessários {n_qubits} qubits")
     n_layers = 1
     weight_shapes = {"weights_1": (n_layers,n_qubits,3)}
@@ -74,7 +75,7 @@ def draw_circuit():
     print(len(sampl_weights[0][0]))
 
     sampl_input = np.random.uniform(low=0, high=np.pi, size=(n_qubits,))
-    print(qml.draw(qnode_entangling, expansion_strategy="device")(sampl_input, sampl_weights))
+    print(qml.draw(qnode_strong_entangling, expansion_strategy="device")(sampl_input, sampl_weights))
 
 
 if __name__ == "__main__":
