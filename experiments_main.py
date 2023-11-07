@@ -134,7 +134,7 @@ def main():
         print(f"Training with depth {n_layers}")
         weight_shapes = {"weights": (n_layers,n_qubits,3)}
 
-        q_layer = qml.qnn.KerasLayer(qnode_entangling, weight_shapes, output_dim=n_qubits)
+        q_layer = qml.qnn.KerasLayer(qnode_strong_entangling, weight_shapes, output_dim=n_qubits)
         Activation=tf.keras.layers.Activation(tf.keras.activations.linear)
         output_layer = tf.keras.layers.Dense(prev,kernel_initializer='normal')
 
@@ -144,7 +144,6 @@ def main():
         model.compile(opt, loss="mse")
 
         input_shape = (n_qubits,)
-
         model.build(input_shape)
         print(model.summary())
 
