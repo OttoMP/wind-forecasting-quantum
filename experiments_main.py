@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from quantum_neural_network import qnode_entangling, qnode_strong_entangling
-from stat_functions import quantitative_analysis, get_mean_left_right_error_interval
+from stat_functions import quantitative_analysis, get_mean_left_right_error_interval, verify_distribution_wilcoxtest
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, MinMaxScaler
@@ -170,6 +170,9 @@ def main():
         list_y_pred.append(y_pred)
         mean_predictions, mean_error_normal, mean_error_left_normal, mean_error_right_normal = get_mean_left_right_error_interval(model, scaler_x, X_val, y_val, y_test, y_pred)
         plot_prediction_versus_observed(n_layers, city, height, y_test, y_pred, mean_error_normal)
+        
+        print(f"Wilcoxon test Depth {n_layers}\n")
+        verify_distribution_wilcoxtest(y_test[:,0],y_pred[:,0], 0.05)
         print("\n#########\n")
 
     #####################
