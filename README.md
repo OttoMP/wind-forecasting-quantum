@@ -35,22 +35,9 @@ To ensure the reproducibility and practical utility of our code, we have provide
 This approach allows future researchers to run the code, understand its mechanics, and adapt it for their own datasets, fostering further exploration in the field.
 
 ---
-### Getting Started
-
-[Consider adding a section here with instructions on how to set up the environment, install dependencies, and run the code. E.g.:]
-
-To get started with the code, follow these steps:
-
-1. Clone the repository: git clone [repository-url]
-2. Install dependencies: pip install -r requirements.txt (or list key dependencies like qiskit, pennylane, tensorflow, numpy, pandas, scikit-learn)
-3. Explore the notebooks/scripts:
-    - notebooks/data_preprocessing.ipynb: Demonstrates how the public dataset is prepared.
-    - src/qnn_model.py: Contains the core QNN architecture.
-    - scripts/train_predict_temperature.py: Example script to train and evaluate the model on the public dataset.
-
----
 ### Citation
 
 If you find this code or research useful, please consider citing our paper:
 
-#TODO
+Otto Menegasso Pires, Erick Giovani Sperandio Nascimento, and Marcelo A. Moret. A quantum neural network model for short term wind speed forecasting using weather data. Energy and AI, 21:100588, 2025.
+[https://doi.org/10.1016/j.egyai.2025.100588](https://doi.org/10.1016/j.egyai.2025.100588)
